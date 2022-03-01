@@ -4,7 +4,7 @@ require("dotenv").config();
 const urlRegex = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/;
 
 const file = fs.readFileSync('input.txt').toString();
-const link = file.replace(/\r\n/g, '\n').split("\n");
+const links = file.replace(/\r\n/g, '\n').split("\n");
 
 var YoutubeMp3Downloader = require("youtube-mp3-downloader");
 var YD = new YoutubeMp3Downloader({
