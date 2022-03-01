@@ -30,26 +30,30 @@ const downloadPromise = (ytID, index) => {
 
 const finishedDownload = async (arr) => {
   var downloads = 0;
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     for (i = 0; i < arr.length; i++){
       if(urlRegex.test(arr[i])){
         const ytID = urlRegex.exec(arr[i])[6];
-        const data = await downloadPromise(ytID, i).then(data => {
+        await downloadPromise(ytID, i).then(data => {
           if(typeof data == "object"){
             let fileName = `${i+1} - ${data.videoTitle}.mp3`;
             fs.renameSync(`${path}/${i+1}.mp3`, `${path}/${fileName}`);
-            log(`Finished Downloading "${data.videoTitle}"`);
+            log(`\✅ Finished Downloading "${data.videoTitle}"!`);
           }
         });
         downloads++;
       }else{
-        log(`"${arr[i]}" is not a valid YouTube link!`);
+        log(`\❌ "${arr[i]}" is not a valid YouTube link!`);
       }
     }
     resolve(downloads);
   });
 }
 
-finishedDownload(arr).then((downloads) => {
+// ---- MAIN ---- \\
+log("Download of all videos started...\n");
+
+finishedDownload(arr)
+.then((downloads) => {
   log(`\n\nFinished downloading ${downloads} YouTube videos.`);
 });
