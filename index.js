@@ -14,6 +14,7 @@ var YD = new YoutubeMp3Downloader({
 const urlRegex = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/;
 const fs = require('fs');
 const { log } = require("console");
+const { resolve } = require("path");
 
 const file = fs.readFileSync('input.txt').toString();
 const arr = file.replace(/\r\n/g, '\n').split("\n");
@@ -21,27 +22,34 @@ const arr = file.replace(/\r\n/g, '\n').split("\n");
 const downloadPromise = (ytID, index) => {
   return new Promise((resolve, reject) => {
     YD.download(ytID, (index+1)+".mp3");
-    YD.on("finished", async (err, data) => {
+    YD.on("finished", (err, data) => {
       resolve(data);
     });
   });
 }
 
-const start = async (arr) => {
-  for (i = 0; i < arr.length; i++){
-    if(urlRegex.test(arr[i])){
-      const ytID = urlRegex.exec(arr[i])[6];
-      const data = await downloadPromise(ytID, i).then(data => {
-        if(typeof data == "object"){
-          let fileName = `${i+1} - ${data.videoTitle}.mp3`;
-          fs.renameSync(`${path}/${i+1}.mp3`, `${path}/${fileName}`);
-          log(`Finished Downloading "${data.videoTitle}"`);
-        }
-      });
-    }else{
-      log(`"${arr[i]}" is not a valid YouTube link!`);
+const finishedDownload = async (arr) => {
+  var downloads = 0;
+  return new Promise((resolve, reject) => {
+    for (i = 0; i < arr.length; i++){
+      if(urlRegex.test(arr[i])){
+        const ytID = urlRegex.exec(arr[i])[6];
+        const data = await downloadPromise(ytID, i).then(data => {
+          if(typeof data == "object"){
+            let fileName = `${i+1} - ${data.videoTitle}.mp3`;
+            fs.renameSync(`${path}/${i+1}.mp3`, `${path}/${fileName}`);
+            log(`Finished Downloading "${data.videoTitle}"`);
+          }
+        });
+        downloads++;
+      }else{
+        log(`"${arr[i]}" is not a valid YouTube link!`);
+      }
     }
-  }
+    resolve(downloads);
+  });
 }
 
-start(arr);
+finishedDownload(arr).then((downloads) => {
+  log(`\n\nFinished downloading ${downloads} YouTube videos.`);
+});
