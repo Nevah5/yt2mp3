@@ -1,23 +1,20 @@
-const path = "./output";
-
-var YoutubeMp3Downloader = require("youtube-mp3-downloader");
-
-var YD = new YoutubeMp3Downloader({
-    "ffmpegPath": "C:/Users/Noah/AppData/Roaming/npm/node_modules/ffmpeg-static/ffmpeg.exe",
-    "outputPath": path,
-    "youtubeVideoQuality": "highestaudio",
-    "queueParallelism": 2,
-    "progressTimeout": 2000,
-    "allowWebm": false
-});
-
-const urlRegex = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/;
 const fs = require('fs');
 const { log } = require("console");
-const { resolve } = require("path");
+require("dotenv").config();
+const urlRegex = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/;
 
 const file = fs.readFileSync('input.txt').toString();
-const arr = file.replace(/\r\n/g, '\n').split("\n");
+const link = file.replace(/\r\n/g, '\n').split("\n");
+
+var YoutubeMp3Downloader = require("youtube-mp3-downloader");
+var YD = new YoutubeMp3Downloader({
+  "ffmpegPath": process.env.FFMPEG_PATH,
+  "outputPath": process.env.OUTPUT_PATH,
+  "youtubeVideoQuality": "highestaudio",
+  "queueParallelism": 2,
+  "progressTimeout": 2000,
+  "allowWebm": false
+});
 
 const downloadPromise = (ytID, index) => {
   return new Promise((resolve, reject) => {
@@ -28,22 +25,22 @@ const downloadPromise = (ytID, index) => {
   });
 }
 
-const finishedDownload = async (arr) => {
+const finishedDownload = async (links) => {
   var downloads = 0;
   return new Promise(async (resolve, reject) => {
-    for (i = 0; i < arr.length; i++){
-      if(urlRegex.test(arr[i])){
-        const ytID = urlRegex.exec(arr[i])[6];
+    for (i = 0; i < links.length; i++){
+      if(urlRegex.test(links[i])){
+        const ytID = urlRegex.exec(links[i])[6];
         await downloadPromise(ytID, i).then(data => {
           if(typeof data == "object"){
             let fileName = `${i+1} - ${data.videoTitle}.mp3`;
-            fs.renameSync(`${path}/${i+1}.mp3`, `${path}/${fileName}`);
+            fs.renameSync(`${process.env.OUTPUT_PATH}/${i+1}.mp3`, `${process.env.OUTPUT_PATH}/${fileName}`);
             log(`\✅ Finished Downloading "${data.videoTitle}"!`);
           }
         });
         downloads++;
       }else{
-        log(`\❌ "${arr[i]}" is not a valid YouTube link!`);
+        log(`\❌ "${links[i]}" is not a valid YouTube link!`);
       }
     }
     resolve(downloads);
@@ -53,7 +50,7 @@ const finishedDownload = async (arr) => {
 // ---- MAIN ---- \\
 log("Download of all videos started...\n");
 
-finishedDownload(arr)
+finishedDownload(links)
 .then((downloads) => {
   log(`\n\nFinished downloading ${downloads} YouTube videos.`);
 });
