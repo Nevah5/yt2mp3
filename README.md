@@ -10,3 +10,10 @@ This is a small project with the [youtube-mp3-downloader](https://www.npmjs.com/
 
 ### Important!
 - Do **not** add a "/" after the folder name in the `OUTPUT_PATH` variable, if you change it.
+
+# How to use
+
+1. Add the youtube links to into the `input.txt` file, separated by a new line.
+2. Run `node .` in the terminal
+3. Let it cook
+4. You should find the mp3 files in the defined `output` folder
